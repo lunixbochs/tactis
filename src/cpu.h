@@ -32,15 +32,15 @@ typedef enum {
 } reg_t;
 
 typedef struct {
-    int32_t op, a, b;
+    int16_t op, a, b;
     char *label;
     int8_t jmp_offset;
 } ins_t;
 
 typedef struct {
-    int32_t acc;
-    int32_t bak;
-    int32_t line;
+    int16_t acc;
+    int16_t bak;
+    int16_t line;
     ins_t *code;
 } state_t;
 #endif
