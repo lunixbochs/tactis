@@ -43,4 +43,6 @@ typedef struct {
     int16_t line;
     ins_t *code;
 } state_t;
+
+void ins_print(ins_t *ins);
 #endif
