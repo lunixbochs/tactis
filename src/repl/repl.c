@@ -6,8 +6,8 @@
 
 int main(int argc, char **argv) {
     while (1) {
-        char line[32];
-        fgets(line, 32, stdin);
+        char line[CPU_WIDTH + 1];
+        fgets(line, CPU_WIDTH + 1, stdin);
         if (feof(stdin) || ferror(stdin)) {
             break;
         }

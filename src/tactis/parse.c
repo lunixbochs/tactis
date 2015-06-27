@@ -87,7 +87,6 @@ int parse_number(char **s, int *ret) {
 }
 
 int parse_token(char **s, token_pair *tpos) {
-    consume_whitespace(s);
     token_pair *tok;
     while ((tok = tpos++)->name) {
         if (strstr(*s, tok->name) == *s) {
@@ -117,13 +116,17 @@ int parse_reg(char **s, parse_error *error) {
 
 int parse_line(char *s, char **label, ins_t *ins, parse_error *error) {
     memset(ins, 0, sizeof(ins_t));
+    error->msg = NULL;
     strupr(s);
     char *pos = s;
+    consume_whitespace(&pos);
+    if (strlen(pos) == 0) {
+        return 0;
+    }
     // parse label
     if (!strchr(s, ':')) {
         *label = NULL;
     } else {
-        consume_whitespace(&pos);
         char *ref = pos;
         pos = strchr(s, ':');
         *label = strndup(ref, pos - ref);
@@ -193,5 +196,7 @@ invalid_opcode:
     }
 err:
     error->col = pos - s;
+    if (! error->len && strchr(pos, ' '))
+        error->len = strchr(pos, ' ') - pos;
     return -1;
 }
