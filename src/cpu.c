@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     while (1) {
         char line[32];
         fgets(line, 32, stdin);
-        if (strlen(line) == 0) {
+        if (feof(stdin) || ferror(stdin)) {
             break;
         }
         if (strlen(line) == 1) {
