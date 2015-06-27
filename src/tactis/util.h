@@ -1,6 +1,8 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef TACTIS_UTIL_H
+#define TACTIS_UTIL_H
+
 char *strdup(const char *s);
 char *strndup(const char *s, size_t len);
 char *struprdup(char *s);
+
 #endif

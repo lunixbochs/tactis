@@ -1,5 +1,6 @@
-#ifndef CPU_H
-#define CPU_H
+#ifndef TACTIS_CPU_H
+#define TACTIS_CPU_H
+
 #include <stdint.h>
 
 typedef enum {

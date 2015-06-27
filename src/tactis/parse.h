@@ -1,5 +1,6 @@
-#ifndef PARSE_H
-#define PARSE_H
+#ifndef TACTIS_PARSE_H
+#define TACTIS_PARSE_H
+
 #include <stdint.h>
 #include "cpu.h"
 
@@ -20,4 +21,5 @@ int parse_line(char *s, char **label, ins_t **ins, parse_error *error);
 
 extern token_pair op_map[];
 extern token_pair reg_map[];
+
 #endif
