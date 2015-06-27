@@ -115,9 +115,9 @@ int parse_reg(char **s, parse_error *error) {
     return token;
 }
 
-int parse_line(char *s, char **label, ins_t **ins_ret, parse_error *error) {
-    ins_t *ins = calloc(1, sizeof(ins_t));
-    s = struprdup(s);
+int parse_line(char *s, char **label, ins_t *ins, parse_error *error) {
+    memset(ins, 0, sizeof(ins_t));
+    strupr(s);
     char *pos = s;
     // parse label
     if (!strchr(s, ':')) {
@@ -182,8 +182,6 @@ int parse_line(char *s, char **label, ins_t **ins_ret, parse_error *error) {
         error->len = strlen(pos);
     }
     if (error->msg) goto err;
-    free(s);
-    *ins_ret = ins;
     return 0;
 invalid_opcode:
     {
@@ -195,7 +193,5 @@ invalid_opcode:
     }
 err:
     error->col = pos - s;
-    free(s);
-    free(ins);
     return -1;
 }

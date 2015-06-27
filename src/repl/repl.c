@@ -17,15 +17,14 @@ int main(int argc, char **argv) {
         line[strlen(line) - 1] = 0;
 
         parse_error error = {0};
-        ins_t *ins;
+        ins_t ins = {0};
         char *label;
-        parse_line(line, &label, &ins, &error);
-        if (error.msg) {
+        if (parse_line(line, &label, &ins, &error)) {
             printf("%d: %s\n", error.col, error.msg);
             continue;
         } else {
             if (label) printf("%s: ", label);
-            if (ins) ins_print(ins);
+            if (ins.op) ins_print(&ins);
         }
     }
     return 0;

@@ -3,6 +3,6 @@
 
 char *strdup(const char *s);
 char *strndup(const char *s, size_t len);
-char *struprdup(char *s);
+void strupr(char *s);
 
 #endif

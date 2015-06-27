@@ -17,10 +17,9 @@ char *strndup(const char *s, size_t len) {
     return s2;
 }
 
-char *struprdup(char *s) {
-    char *s2 = malloc(strlen(s));
-    char *pos = s2;
-    do *pos++ = toupper(*s++); while (*s);
-    *pos = 0;
-    return s2;
+void strupr(char *s) {
+    do {
+        int c = toupper(*s);
+        *s++ = c;
+    } while (*s);
 }
