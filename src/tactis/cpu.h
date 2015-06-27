@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define CPU_HEIGHT 15
+#define CPU_WIDTH 18
+
 typedef enum {
     OP_NONE,
     OP_NOP,
@@ -42,8 +45,10 @@ typedef struct {
     int16_t acc;
     int16_t bak;
     int16_t line;
-    ins_t *code;
-} state_t;
+    ins_t ops[CPU_HEIGHT];
+    char *labels[CPU_HEIGHT];
+} cpu_state_t;
 
 void ins_print(ins_t *ins);
+
 #endif
