@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
             continue;
         }
         line[strlen(line) - 1] = 0;
+
         parse_error error = {0};
         ins_t *ins;
         char *label;
@@ -31,12 +32,8 @@ int main(int argc, char **argv) {
             printf("%d: %s\n", error.col, error.msg);
             continue;
         } else {
-            if (label) {
-                printf("%s: ", label);
-            }
-            if (ins) {
-                ins_print(ins);
-            }
+            if (label) printf("%s: ", label);
+            if (ins) ins_print(ins);
         }
     }
     return 0;
