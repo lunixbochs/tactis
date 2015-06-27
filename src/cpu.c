@@ -7,8 +7,10 @@
 #include "parse.h"
 
 void ins_print(ins_t *ins) {
-    printf("ins: %s (%s)", op_name(ins->op), reg_name(ins->a));
-    printf(", (%s)\n", reg_name(ins->b));
+    printf("%s", op_name(ins->op));
+    if (ins->a) printf(" %s", reg_name(ins->a));
+    if (ins->b) printf(", %s", reg_name(ins->b));
+    printf("\n");
 }
 
 int main(int argc, char **argv) {
