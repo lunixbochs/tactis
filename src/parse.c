@@ -48,9 +48,9 @@ const char *op_name(int token) {
 }
 
 const char *reg_name(int token) {
-    if (token & 4096) {
+    if (token > 4096) {
         static char buf[32] = {0};
-        snprintf(buf, 32, "%d", token & ~4096);
+        snprintf(buf, 32, "%d", token - 5096);
         return buf;
     }
     return token_name(token, reg_map);
@@ -103,7 +103,7 @@ int parse_reg(char **s, error_t *error) {
             asprintf(&error->msg, "value %d outside range", token);
             return 0;
         }
-        token |= 4096;
+        token += 5096;
     }
     return token;
 }
@@ -118,18 +118,37 @@ ins_t *parse(char *s, error_t *error) {
         goto err;
     }
     switch (ins->op) {
+        case OP_NOP:
+        case OP_SAV:
+        case OP_SWP:
+        case OP_NEG:
+        case OP_JRO:
+            break;
         case OP_MOV:
             ins->a = parse_reg(&pos, error);
             if (error->msg) goto err;
             ins->b = parse_reg(&pos, error);
-            if (ins->b & 4096) {
-                asprintf(&error->msg, "target (%d) must be register", ins->b & ~4096);
+            if (ins->b > 4096) {
+                asprintf(&error->msg, "target (%d) must be register", ins->b - 5096);
             }
             if (error->msg) goto err;
-            return ins;
+            break;
+        case OP_ADD:
+        case OP_SUB:
+            ins->a = parse_reg(&pos, error);
+            break;
+        case OP_JMP:
+        case OP_JEZ:
+        case OP_JNZ:
+        case OP_JGZ:
+        case OP_JLZ:
+            asprintf(&error->msg, "TODO: parse jump label");
+            break;
     }
-    asprintf(&error->msg, "not implemented");
-    goto err;
+    if (strlen(pos) > 0) {
+        asprintf(&error->msg, "extra bytes after last operand");
+    }
+    if (error->msg) goto err;
     free(s);
     return ins;
 err:
