@@ -99,10 +99,9 @@ int parse_reg(char **s, error_t *error) {
             asprintf(&error->msg, "expected register");
             return 0;
         }
-        if (token > 999 || token < -999) {
-            asprintf(&error->msg, "value %d outside range", token);
-            return 0;
-        }
+        // overflow saturates
+        if (token > 999) token = 999;
+        if (token < -999) token = -999;
         token += 5096;
     }
     return token;
