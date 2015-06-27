@@ -56,10 +56,17 @@ const char *reg_name(int token) {
     return token_name(token, reg_map);
 }
 
-void consume_number(char **s) {
+static void consume_whitespace(char **s) {
+    while (**s == ' ') (*s)++;
+}
+
+static void consume_separator(char **s) {
+    while (**s == ',' || **s == ' ') (*s)++;
+}
+
+static void consume_number(char **s) {
     if (**s == '-') (*s)++;
     while (isdigit(**s)) (*s)++;
-    while (**s == ',' || **s == ' ') (*s)++;
 }
 
 int parse_number(char **s, int *ret) {
@@ -79,20 +86,19 @@ int parse_number(char **s, int *ret) {
 }
 
 int parse_token(char **s, token_pair *tpos) {
+    consume_whitespace(s);
     token_pair *tok;
     while ((tok = tpos++)->name) {
         if (strstr(*s, tok->name) == *s) {
             *s += strlen(tok->name);
-            while (**s == ',' || **s == ' ') {
-                (*s)++;
-            }
+            consume_whitespace(s);
             return tok->token;
         }
     }
     return -1;
 }
 
-int parse_reg(char **s, error_t *error) {
+int parse_reg(char **s, parse_error *error) {
     int token = parse_token(s, reg_map);
     if (token == -1) {
         if (parse_number(s, &token)) {
@@ -104,18 +110,36 @@ int parse_reg(char **s, error_t *error) {
         if (token < -999) token = -999;
         token += 5096;
     }
+    consume_separator(s);
     return token;
 }
 
-ins_t *parse(char *s, error_t *error) {
+int parse_line(char *s, char **label, ins_t **ins_ret, parse_error *error) {
+    ins_t *ins = calloc(1, sizeof(ins_t));
     s = struprdup(s);
-    ins_t *ins = malloc(sizeof(ins_t));
     char *pos = s;
+    // parse label
+    if (!strchr(s, ':')) {
+        *label = NULL;
+    } else {
+        consume_whitespace(&pos);
+        char *ref = pos;
+        pos = strchr(s, ':');
+        *label = strndup(ref, pos - ref);
+        if (strchr(*label, ' ')) {
+            free(*label);
+            *label = NULL;
+            pos = ref;
+            goto invalid_opcode;
+        }
+        pos += 1;
+    }
+    // parse opcode
     ins->op = parse_token(&pos, op_map);
     if (ins->op == -1) {
-        asprintf(&error->msg, "expected operator");
-        goto err;
+        goto invalid_opcode;
     }
+    // parse operands
     switch (ins->op) {
         case OP_NOP:
         case OP_SAV:
@@ -128,7 +152,7 @@ ins_t *parse(char *s, error_t *error) {
             if (error->msg) goto err;
             ins->b = parse_reg(&pos, error);
             if (ins->b > 4096) {
-                asprintf(&error->msg, "target (%d) must be register", ins->b - 5096);
+                asprintf(&error->msg, "target \"%d\" must be register", ins->b - 5096);
             }
             if (error->msg) goto err;
             break;
@@ -141,17 +165,36 @@ ins_t *parse(char *s, error_t *error) {
         case OP_JNZ:
         case OP_JGZ:
         case OP_JLZ:
-            asprintf(&error->msg, "TODO: parse jump label");
+        {
+            char *ref = pos;
+            if (strchr(pos, ' ')) {
+                pos = strchr(pos, ' ');
+            } else {
+                pos += strlen(pos);
+            }
+            ins->label = strndup(ref, pos - ref);
             break;
+        }
     }
     if (strlen(pos) > 0) {
-        asprintf(&error->msg, "extra bytes after last operand");
+        asprintf(&error->msg, "too many operands");
+        error->len = strlen(pos);
     }
     if (error->msg) goto err;
     free(s);
-    return ins;
+    *ins_ret = ins;
+    return 0;
+invalid_opcode:
+    {
+        // null terminate at first space
+        char *c = strchr(pos, ' ');
+        if (c) *c = '\0';
+        asprintf(&error->msg, "invalid opcode \"%s\"", pos);
+        error->len = strlen(pos);
+    }
 err:
+    error->col = pos - s;
     free(s);
     free(ins);
-    return NULL;
+    return -1;
 }

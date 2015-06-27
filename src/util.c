@@ -9,6 +9,13 @@ char *strdup(const char *s) {
     return s2;
 }
 
+char *strndup(const char *s, size_t len) {
+    char *s2 = malloc(len + 1);
+    strncpy(s2, s, len);
+    s2[len] = '\0';
+    return s2;
+}
+
 char *struprdup(char *s) {
     char *s2 = malloc(strlen(s));
     char *pos = s2;

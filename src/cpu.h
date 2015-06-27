@@ -33,6 +33,8 @@ typedef enum {
 
 typedef struct {
     int32_t op, a, b;
+    char *label;
+    int8_t jmp_offset;
 } ins_t;
 
 typedef struct {
@@ -41,10 +43,4 @@ typedef struct {
     int32_t line;
     ins_t *code;
 } state_t;
-
-typedef struct {
-    char *msg;
-    int line;
-    int col;
-} error_t;
 #endif
