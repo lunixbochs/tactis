@@ -137,6 +137,7 @@ int parse_line(char *s, char **label, ins_t *ins, parse_error *error) {
             goto invalid_opcode;
         }
         pos += 1;
+        consume_whitespace(&pos);
     }
     // parse opcode
     ins->op = parse_token(&pos, op_map);
