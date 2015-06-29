@@ -2,6 +2,7 @@
 #define TACTIS_CPU_H
 
 #include <stdint.h>
+#include "node.h"
 
 #define CPU_HEIGHT 15
 #define CPU_WIDTH 18
@@ -41,13 +42,16 @@ typedef struct {
     int8_t jmp_offset;
 } ins_t;
 
-typedef struct {
+typedef struct _cpu_state {
+    node_t node;
     int16_t acc;
     int16_t bak;
     int16_t line;
     ins_t ops[CPU_HEIGHT];
     char *labels[CPU_HEIGHT];
 } cpu_state_t;
+
+typedef io_status (*write)(struct _cpu_state *cpu, io_dir dir);
 
 void ins_print(ins_t *ins);
 
