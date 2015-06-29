@@ -35,6 +35,14 @@ cpu_state *cpu_new(int16_t id, char *code, parse_error *error) {
         }
         i++;
     }
+    for (int i = 0; i < CPU_HEIGHT; i++) {
+        for (int j = 0; j < CPU_HEIGHT; j++) {
+            if (cpu->labels[i] && cpu->ops[j].label &&
+                    strcmp(cpu->labels[i], cpu->ops[j].label) == 0) {
+                cpu->ops[j].jmp_offset = i - j;
+            }
+        }
+    }
     free(lines);
     return cpu;
 }
