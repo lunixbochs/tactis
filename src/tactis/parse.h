@@ -2,17 +2,7 @@
 #define TACTIS_PARSE_H
 
 #include <stdint.h>
-#include "cpu.h"
-
-typedef struct { 
-    const char *name; 
-    int32_t token; 
-} token_pair; 
-
-typedef struct {
-    char *msg;
-    int line, col, len;
-} parse_error;
+#include "types.h"
 
 const char *token_name(int token, token_pair *tpos);
 const char *op_name(int token);

@@ -4,55 +4,8 @@
 #include <stdint.h>
 #include "node.h"
 
-#define CPU_HEIGHT 15
-#define CPU_WIDTH 18
-
-typedef enum {
-    OP_NONE,
-    OP_NOP,
-    OP_MOV,
-    OP_SWP,
-    OP_SAV,
-    OP_ADD,
-    OP_SUB,
-    OP_NEG,
-    OP_JMP,
-    OP_JEZ,
-    OP_JNZ,
-    OP_JGZ,
-    OP_JLZ,
-    OP_JRO,
-} operator_t;
-
-typedef enum {
-    REG_NONE,
-    REG_NIL,
-    REG_ACC,
-    REG_ANY,
-    REG_LAST,
-    REG_UP,
-    REG_DOWN,
-    REG_LEFT,
-    REG_RIGHT,
-} reg_t;
-
-typedef struct {
-    int16_t op, a, b;
-    char *label;
-    int8_t jmp_offset;
-} ins_t;
-
-typedef struct _cpu_state {
-    node_t node;
-    int16_t acc;
-    int16_t bak;
-    int16_t line;
-    ins_t ops[CPU_HEIGHT];
-    char *labels[CPU_HEIGHT];
-} cpu_state_t;
-
-typedef io_status (*write)(struct _cpu_state *cpu, io_dir dir);
-
+cpu_state *cpu_new(int16_t id, char *code, parse_error *error);
+void cpu_free(cpu_state *cpu);
 void ins_print(ins_t *ins);
 
 #endif
