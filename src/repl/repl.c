@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
         line[strlen(line) - 1] = 0;
 
         parse_error error = {0};
-        ins_t ins = {0};
+        cpu_ins ins = {0};
         char *label;
         if (parse_line(line, &label, &ins, &error)) {
             printf("%d: %s\n", error.col, error.msg);

@@ -28,16 +28,28 @@ typedef enum {
 } io_dir;
 
 typedef enum {
+    IO_NONE,
+    // read or write is blocking
     IO_WAIT,
-    IO_DONE,
+    // returned during write delay
+    IO_LOAD,
 } io_status;
 
 typedef struct _node {
     int8_t type;
-    int16_t id;
-    io_status (*read)(struct _node *node, io_dir dir, int *data);
-    io_status (*write)(struct _node *node, io_dir dir, int data);
-    io_dir read_mask, write_mask;
+    int16_t x, y;
+    io_status (*read)(struct _node *node, io_dir dir, int16_t *data);
+    io_status (*write)(struct _node *node, io_dir dir, int16_t data, int16_t delay);
+    // this is the number of cycles a write delays
+    int16_t delay;
+    // this is a bitfield of the directions allowed for output
+    io_dir out_mask;
+    // this is the value held for output
+    int16_t output;
+    // IO_NONE with no data, IO_LOAD during delay, and IO_WAIT while waiting for receiver
+    io_status status;
+    // useful place to store cpu table for callbacks
+    void *user;
 } node_t;
 
 // cpu type
@@ -57,7 +69,7 @@ typedef enum {
     OP_JGZ,
     OP_JLZ,
     OP_JRO,
-} operator_t;
+} cpu_op;
 
 typedef enum {
     REG_NONE,
@@ -66,23 +78,23 @@ typedef enum {
     REG_ANY,
     REG_LAST,
     REG_UP,
-    REG_DOWN,
     REG_LEFT,
     REG_RIGHT,
-} reg_t;
+    REG_DOWN,
+} cpu_reg;
 
 typedef struct {
     int16_t op, a, b;
     char *label;
     int8_t jmp_offset;
-} ins_t;
+} cpu_ins;
 
 typedef struct _cpu_state {
     node_t node;
-    int16_t acc;
-    int16_t bak;
+    int16_t acc, bak;
+    int16_t last;
     int16_t line;
-    ins_t ops[CPU_HEIGHT];
+    cpu_ins ops[CPU_HEIGHT];
     char *labels[CPU_HEIGHT];
 } cpu_state;
 

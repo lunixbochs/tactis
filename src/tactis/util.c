@@ -5,7 +5,7 @@
 #include "util.h"
 
 char *strdup(const char *s) {
-    char *s2 = malloc(strlen(s));
+    char *s2 = malloc(strlen(s) + 1);
     strcpy(s2, s);
     return s2;
 }
@@ -22,4 +22,10 @@ void strupr(char *s) {
         int c = toupper(*s);
         *s++ = c;
     } while (*s);
+}
+
+int16_t clamp_999(int16_t value) {
+    if (value < -999) value = -999;
+    if (value > 999) value = 999;
+    return value;
 }

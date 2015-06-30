@@ -114,8 +114,8 @@ int parse_reg(char **s, parse_error *error) {
     return token;
 }
 
-int parse_line(char *s, char **label, ins_t *ins, parse_error *error) {
-    memset(ins, 0, sizeof(ins_t));
+int parse_line(char *s, char **label, cpu_ins *ins, parse_error *error) {
+    memset(ins, 0, sizeof(cpu_ins));
     error->msg = NULL;
     strupr(s);
     char *pos = s;
@@ -164,6 +164,11 @@ int parse_line(char *s, char **label, ins_t *ins, parse_error *error) {
         case OP_ADD:
         case OP_SUB:
             ins->a = parse_reg(&pos, error);
+            if (error->msg) {
+                asprintf(&error->msg, "expected register");
+                error->len = strlen(pos);
+                goto err;
+            }
             break;
         case OP_JMP:
         case OP_JEZ:
