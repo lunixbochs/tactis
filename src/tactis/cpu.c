@@ -7,14 +7,20 @@
 #include "node.h"
 #include "util.h"
 
-cpu_state *cpu_new(char *code, parse_error *error, node_read_ptr read, node_write_ptr write) {
+node_t *cpu_new(char *code, parse_error *error, node_read_ptr read, node_write_ptr write) {
     char *lines = strdup(code);
     char *pos = lines;
     cpu_state *cpu = calloc(1, sizeof(cpu_state));
-    cpu->node.read = read;
-    cpu->node.write = write;
+    node_t *node = (node_t *)cpu;
+    node->type = NODE_CPU;
+    node->read = read;
+    node->write = write;
+    node->step = cpu_step;
+    node->latch = cpu_latch;
+    node->free = cpu_free;
+    node->print = cpu_print;
     char *line;
-    int i;
+    int i = 0;
     while ((line = strsep(&pos, "\n")) != NULL && i < CPU_HEIGHT) {
         if (parse_line(line, &cpu->labels[i], &cpu->ops[i], error)) {
             error->line = i;
@@ -33,46 +39,69 @@ cpu_state *cpu_new(char *code, parse_error *error, node_read_ptr read, node_writ
         }
     }
     free(lines);
-    return cpu;
+    return node;
 }
 
-void cpu_free(cpu_state *cpu) {
+void cpu_free(node_t *node) {
+    cpu_state *cpu = (cpu_state *)node;
     for (int i = 0; i < CPU_HEIGHT; i++) {
         free(cpu->labels[i]);
     }
 }
 
-void cpu_move(cpu_state *cpu, int16_t x, int16_t y) {
-    cpu->node.x = x;
-    cpu->node.y = y;
-}
-
-static io_status reg_get(cpu_state *cpu, int16_t imm, int16_t *value) {
-    *value cpu->output;
-    if (*value == 0) {
-        if (imm > 4096) {
-            *value = imm - 5096;
-        } else switch (imm) {
+static io_status cpu_read(cpu_state *cpu, int16_t imm, int16_t *value) {
+    if (imm > 4096) {
+        *value = imm - 5096;
+        return IO_NONE;
+    } else {
+        switch (imm) {
             case REG_NIL:
-                value = 0;
-                break;
+                *value = 0;
+                return IO_NONE;
             case REG_ACC:
                 *value = cpu->acc;
-                break;
-            // LAST is handled in port_read()
+                return IO_NONE;
+            // LAST is handled in node.read()
             case REG_LAST:
             case REG_ANY:
             case REG_UP:
             case REG_LEFT:
             case REG_RIGHT:
             case REG_DOWN:
-                return cpu->node.read(cpu->node, imm, value);
+                return cpu->node.read(&cpu->node, imm, value);
+            default:
+                fprintf(stderr, "error: invalid register\n");
+                return IO_WAIT;
         }
     }
     return IO_NONE;
 }
 
-io_status cpu_step(cpu_state *cpu) {
+static io_status cpu_write(cpu_state *cpu, int16_t mask, int16_t value) {
+    cpu->node.status = IO_LOAD;
+    cpu->node.out_mask = mask;
+    cpu->node.output = value;
+    return IO_LOAD;
+}
+
+void cpu_advance(node_t *node) {
+    cpu_state *cpu = (cpu_state *)node;
+    cpu->line = (cpu->line + 1) % CPU_HEIGHT;
+    // skip empty lines
+    for (int i = 0; i < CPU_HEIGHT; i++) {
+        if (cpu->ops[cpu->line].op == OP_NONE) {
+            cpu->line = (cpu->line + 1) % CPU_HEIGHT;
+        } else {
+            break;
+        }
+    }
+}
+
+io_status cpu_step(node_t *node) {
+    cpu_state *cpu = (cpu_state *)node;
+    if (cpu->node.status != IO_NONE) {
+        return cpu->node.status;
+    }
     int16_t value;
     cpu_ins *ins;
     ins = &cpu->ops[cpu->line];
@@ -81,7 +110,7 @@ io_status cpu_step(cpu_state *cpu) {
             break;
         case OP_MOV:
             // source
-            if (reg_get(cpu, ins->a, &value) == IO_WAIT) {
+            if (cpu_read(cpu, ins->a, &value) == IO_WAIT) {
                 return IO_WAIT;
             }
             // dst
@@ -97,8 +126,7 @@ io_status cpu_step(cpu_state *cpu) {
                 case REG_LEFT:
                 case REG_RIGHT:
                 case REG_DOWN:
-                    printf("port write to %d\n", ins->b);
-                    return IO_WAIT;
+                    return cpu_write(cpu, ins->b, value);
             }
             break;
         case OP_SWP:
@@ -112,13 +140,13 @@ io_status cpu_step(cpu_state *cpu) {
             cpu->bak = cpu->acc;
             break;
         case OP_ADD:
-            if (reg_get(cpu, ins->a, &value) == IO_WAIT) {
+            if (cpu_read(cpu, ins->a, &value) == IO_WAIT) {
                 return IO_WAIT;
             }
             cpu->acc += value;
             break;
         case OP_SUB:
-            if (reg_get(cpu, ins->a, &value) == IO_WAIT) {
+            if (cpu_read(cpu, ins->a, &value) == IO_WAIT) {
                 return IO_WAIT;
             }
             cpu->acc -= value;
@@ -132,44 +160,52 @@ io_status cpu_step(cpu_state *cpu) {
         case OP_JEZ:
             if (cpu->acc == 0) {
                 cpu->line += ins->jmp_offset;
+                return IO_NONE;
             }
-            return IO_NONE;
+            break;
         case OP_JNZ:
             if (cpu->acc != 0) {
                 cpu->line += ins->jmp_offset;
+                return IO_NONE;
             }
-            return IO_NONE;
+            break;
         case OP_JGZ:
             if (cpu->acc > 0) {
                 cpu->line += ins->jmp_offset;
+                return IO_NONE;
             }
-            return IO_NONE;
+            break;
         case OP_JLZ:
             if (cpu->acc < 0) {
                 cpu->line += ins->jmp_offset;
+                return IO_NONE;
             }
-            return IO_NONE;
+            break;
         case OP_JRO:
-            if (reg_get(cpu, ins->a, &value) == IO_WAIT) {
+            if (cpu_read(cpu, ins->a, &value) == IO_WAIT) {
                 return IO_WAIT;
             }
             cpu->line += value;
             return IO_NONE;
     }
     cpu->acc = clamp_999(cpu->acc);
-    cpu->line = (cpu->line + 1) % CPU_HEIGHT;
-    // skip empty lines
-    for (int i = 0; i < CPU_HEIGHT; i++) {
-        if (cpu->ops[cpu->line].op == OP_NONE) {
-            cpu->line = (cpu->line + 1) % CPU_HEIGHT;
-        } else {
-            break;
-        }
-    }
+    cpu_advance(node);
     return IO_NONE;
 }
 
-void cpu_print(cpu_state *cpu) {
+io_status cpu_latch(node_t *node) {
+    cpu_state *cpu = (cpu_state *)node;
+    if (node->status == IO_LOAD) {
+        node->status = node->write(node, node->out_mask, node->output);
+    } else if (node->status == IO_DONE) {
+        node->status = IO_NONE;
+        cpu_advance(node);
+    }
+    return node->status;
+}
+
+void cpu_print(node_t *node) {
+    cpu_state *cpu = (cpu_state *)node;
     printf("------------------\n");
     printf("| ACC: %d, BAK: %d\n", cpu->acc, cpu->bak);
     printf("------------------\n");

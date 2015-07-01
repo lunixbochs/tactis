@@ -26,12 +26,12 @@ token_pair op_map[] = {
 token_pair reg_map[] = {
     {"NIL", REG_NIL},
     {"ACC", REG_ACC},
-    {"ANY", REG_ANY},
-    {"LAST", REG_LAST},
-    {"UP", REG_UP},
-    {"DOWN", REG_DOWN},
-    {"LEFT", REG_LEFT},
-    {"RIGHT", REG_RIGHT},
+    {"ANY", DIR_ANY},
+    {"LAST", DIR_LAST},
+    {"UP", DIR_UP},
+    {"DOWN", DIR_DOWN},
+    {"LEFT", DIR_LEFT},
+    {"RIGHT", DIR_RIGHT},
     {0},
 };
 

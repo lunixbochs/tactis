@@ -4,11 +4,11 @@
 #include <stdint.h>
 #include "node.h"
 
-cpu_state *cpu_new(char *code, parse_error *error, node_read_ptr read, node_write_ptr write);
-void cpu_free(cpu_state *cpu);
-void cpu_move(cpu_state *cpu, int16_t x, int16_t y);
-io_status cpu_step(cpu_state *cpu);
-void cpu_print(cpu_state *cpu);
+node_t *cpu_new(char *code, parse_error *error, node_read_ptr read, node_write_ptr write);
+io_status cpu_step(node_t *node);
+io_status cpu_latch(node_t *node);
+void cpu_free(node_t *node);
+void cpu_print(node_t *node);
 void ins_print(cpu_ins *ins);
 
 #endif

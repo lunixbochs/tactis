@@ -8,7 +8,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 include_directories(src/tactis)
 
-add_definitions(-ggdb)
+add_definitions(-ggdb -O2)
 
 file(GLOB_RECURSE TACTIS_SOURCE src/tactis/*.c)
 add_library(tactis STATIC ${TACTIS_SOURCE})
