@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "parse.h"
+#include "tactis.h"
 #include "./error.h"
 
 void print_error(char *code, parse_error *error) {

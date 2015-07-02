@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cpu.h"
-#include "parse.h"
+#include "tactis.h"
 
 int main(int argc, char **argv) {
     while (1) {
