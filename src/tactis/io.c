@@ -36,7 +36,7 @@ void input_free(node_t *node) {
 
 void input_print(node_t *node) {
     input_t *input = (input_t *)node;
-    int16_t *pos = input->input;
+    int16_t *pos = input->input + input->pos;
     printf("input queue: ");
     while (*pos != -1000) {
         printf("%d", *pos);
