@@ -61,8 +61,8 @@ static io_status cpu_read(cpu_state *cpu, int16_t imm, int16_t *value) {
             case REG_ACC:
                 *value = cpu->acc;
                 return IO_NONE;
-            // LAST is handled in node.read()
             case REG_LAST:
+                imm = cpu->node.last || REG_NIL;
             case REG_ANY:
             case REG_UP:
             case REG_LEFT:
@@ -102,7 +102,7 @@ io_status cpu_step(node_t *node) {
     if (cpu->node.status != IO_NONE) {
         return cpu->node.status;
     }
-    int16_t value;
+    int16_t value, reg;
     cpu_ins *ins;
     ins = &cpu->ops[cpu->line];
     switch (ins->op) {
@@ -114,19 +114,21 @@ io_status cpu_step(node_t *node) {
                 return IO_WAIT;
             }
             // dst
-            switch (ins->b) {
+            reg = ins->b;
+            switch (reg) {
                 case REG_NIL:
                     break;
                 case REG_ACC:
                     cpu->acc = value;
                     break;
                 case REG_LAST:
+                    reg = cpu->node.last || REG_NIL;
                 case REG_ANY:
                 case REG_UP:
                 case REG_LEFT:
                 case REG_RIGHT:
                 case REG_DOWN:
-                    return cpu_write(cpu, ins->b, value);
+                    return cpu_write(cpu, reg, value);
             }
             break;
         case OP_SWP:

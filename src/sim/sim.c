@@ -21,16 +21,15 @@ char *code = (
 
 char *sink_code = "MOV ANY, DOWN\n";
 
+static io_status sim_read_any(node_t *node, io_dir dir, int16_t *data);
+
 io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
-    if (dir == DIR_LAST) {
-        dir = node->last;
-    }
     if (dir == DIR_ANY) {
         // TODO: IO_DONE?
-        if ((sim_read(node, DIR_LEFT, data) == IO_NONE) ||
-             (sim_read(node, DIR_RIGHT, data) == IO_NONE) ||
-             (sim_read(node, DIR_UP, data) == IO_NONE) ||
-             (sim_read(node, DIR_DOWN, data) == IO_NONE)) {
+        if ((sim_read_any(node, DIR_LEFT, data) == IO_NONE) ||
+             (sim_read_any(node, DIR_RIGHT, data) == IO_NONE) ||
+             (sim_read_any(node, DIR_UP, data) == IO_NONE) ||
+             (sim_read_any(node, DIR_DOWN, data) == IO_NONE)) {
             return IO_NONE;
         }
     }
@@ -61,7 +60,7 @@ io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
         node_t *(*nodes)[3] = node->user;
         node_t *node = nodes[x][y];
         if (node->status == IO_WAIT) {
-            if (node->out_mask & mask || (node->out_mask & DIR_LAST && node->last & mask)) {
+            if (node->out_mask & mask) {
                 *data = node->output;
                 node->status = IO_DONE;
                 return IO_NONE;
@@ -69,6 +68,14 @@ io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
         }
     }
     return IO_WAIT;
+}
+
+static io_status sim_read_any(node_t *node, io_dir dir, int16_t *data) {
+    io_status status = sim_read(node, dir, data);
+    if (status == IO_NONE) {
+        node->last = dir;
+    }
+    return status;
 }
 
 io_status sim_write(node_t *node, io_dir dir, int16_t data) {
