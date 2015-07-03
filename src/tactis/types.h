@@ -68,6 +68,13 @@ typedef struct _node {
     void (*print)(struct _node *node);
 } node_t;
 
+// io types
+typedef struct {
+    node_t node;
+    int16_t data[IO_HEIGHT];
+    int16_t pos;
+} io_t;
+
 // cpu type
 
 typedef enum {

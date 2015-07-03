@@ -9,6 +9,6 @@ io_status cpu_step(node_t *node);
 io_status cpu_latch(node_t *node);
 void cpu_free(node_t *node);
 void cpu_print(node_t *node);
-void ins_print(cpu_ins *ins);
+int ins_print(cpu_ins *ins);
 
 #endif

@@ -227,16 +227,18 @@ void cpu_print(node_t *node) {
             printf("%s: ", cpu->labels[i]);
         }
         ins_print(&cpu->ops[i]);
+        printf("\n");
     }
     printf("------------------\n");
 }
 
-void ins_print(cpu_ins *ins) {
+int ins_print(cpu_ins *ins) {
+    int len = 0;
     if (ins->op) {
-        printf("%s", op_name(ins->op));
-        if (ins->a) printf(" %s", reg_name(ins->a));
-        if (ins->b) printf(", %s", reg_name(ins->b));
-        if (ins->label) printf(" %s", ins->label);
+        len += printf("%s", op_name(ins->op));
+        if (ins->a) len += printf(" %s", reg_name(ins->a));
+        if (ins->b) len += printf(", %s", reg_name(ins->b));
+        if (ins->label) len += printf(" %s", ins->label);
     }
-    printf("\n");
+    return len;
 }

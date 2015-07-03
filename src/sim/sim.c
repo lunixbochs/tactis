@@ -2,12 +2,8 @@
 #include <string.h>
 
 #include "tactis.h"
+#include "./display.h"
 #include "./error.h"
-
-typedef struct {
-    node_t node;
-    int16_t *input;
-} input_t;
 
 char *code = (
     "MOV UP, ACC\n"
@@ -54,8 +50,8 @@ io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
     }
     // TODO: don't hardcode bounds
     if (x != -1 && y != -1 && x < 2 && y < 3) {
-        node_t *(*nodes)[3] = node->user;
-        node_t *node = nodes[x][y];
+        node_t **nodes = node->user;
+        node_t *node = nodes[x + y * 2];
         if (node->status == IO_WAIT) {
             if (node->out_mask & mask) {
                 *data = node->output;
@@ -86,56 +82,53 @@ int main(int argc, char **argv) {
     if (! cpu) {
         print_error(code, &error);
     }
-    node_t *cpus[2][3] = {0};
-    int16_t inputs[] = {1, 2, 3, 4, 5, -1000};
+    node_t *nodes[3][2] = {0};
+    int16_t inputs[IO_HEIGHT] = {1, 2, 3, 4, 5, -1000};
+    node_t *in_bs = input_new(inputs, sim_read, sim_write);
+    nodes[0][0] = in_bs;
     for (int x = 0; x < 2; x++) {
-        node_t *in_bs = input_new(inputs, sim_read, sim_write);
-        cpus[x][0] = in_bs;
-
         node_t *out_print = output_new(sim_read, sim_write);
-        cpus[x][2] = out_print;
+        nodes[2][x] = out_print;
     }
-    cpus[0][1] = cpu;
-    cpus[1][1] = cpu_new(sink_code, &error, sim_read, sim_write);
-    if (! cpus[1][1]) {
+    nodes[1][0] = cpu;
+    nodes[1][1] = cpu_new(sink_code, &error, sim_read, sim_write);
+    if (! nodes[1][1]) {
         print_error(code, &error);
     }
+    node_t *null_node = node_new();
     for (int x = 0; x < 2; x++) {
         for (int y = 0; y < 3; y++) {
-            node_move(cpus[x][y], x, y);
-            cpus[x][y]->user = (void *)cpus;
+            if (nodes[y][x]) {
+                node_move(nodes[y][x], x, y);
+                nodes[y][x]->user = (void *)nodes;
+            } else {
+                nodes[y][x] = null_node;
+            }
         }
     }
     /*
     for (int x = 0; x < 2; x++) {
         for (int y = 1; y < 3; y++) {
-            if (cpus[x][y])
+            if (nodes[x][y])
                 continue;
-            cpus[x][y] = cpu_new(sink_code, &error, sim_read, sim_write);
-            if (! cpus[x][y]) {
+            nodes[x][y] = cpu_new(sink_code, &error, sim_read, sim_write);
+            if (! nodes[x][y]) {
                 print_error(code, &error);
             }
         }
     }
     */
-    node_print(cpu);
     while (1) {
+        sim_print((node_t **)nodes, 2, 3);
         fgetc(stdin);
         for (int x = 0; x < 2; x++) {
             for (int y = 0; y < 3; y++) {
-                node_step(cpus[x][y]);
+                node_step(nodes[y][x]);
             }
         }
         for (int x = 0; x < 2; x++) {
             for (int y = 0; y < 3; y++) {
-                node_latch(cpus[x][y]);
-            }
-        }
-        for (int x = 0; x < 2; x++) {
-            for (int y = 0; y < 3; y++) {
-                if (cpus[x][y]->type == NODE_CPU) {
-                }
-                node_print(cpus[x][y]);
+                node_latch(nodes[y][x]);
             }
         }
     }

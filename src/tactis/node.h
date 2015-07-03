@@ -11,6 +11,7 @@ typedef io_status (*node_step_ptr)(node_t *node);
 typedef io_status (*node_latch_ptr)(node_t *node);
 typedef io_status (*node_free_ptr)(node_t *node);
 
+node_t *node_new();
 io_status node_latch(node_t *node);
 io_status node_step(node_t *node);
 void node_free(node_t *node);

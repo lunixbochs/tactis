@@ -2,6 +2,7 @@
 #define TACTIS_UTIL_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 char *strdup(const char *s);
 char *strndup(const char *s, size_t len);

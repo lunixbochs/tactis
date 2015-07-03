@@ -23,7 +23,10 @@ int main(int argc, char **argv) {
             continue;
         } else {
             if (label) printf("%s: ", label);
-            if (ins.op) ins_print(&ins);
+            if (ins.op) {
+                ins_print(&ins);
+                printf("\n");
+            }
         }
     }
     return 0;
