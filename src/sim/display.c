@@ -5,30 +5,44 @@
 #define l(line, ...) case line: printf(__VA_ARGS__); break;
 void cpu_print_i(node_t *node, int row) {
     cpu_state *cpu = (cpu_state *)node;
+    int line = row - 1;
     switch (row) {
-        l(0, "---------------------|");
-        l(1, " ACC: %-4d BAK: %-4d |", cpu->acc, cpu->bak);
-        l(2, "---------------------|");
-        l(18, "---------------------|");
+        l(0,              "|----------------------|-----|    ");
+        l(CPU_HEIGHT + 1, "|----------------------|-----|    ");
         default:
-            if (row >= 3 && row <= CPU_HEIGHT + 4) {
-                int line = row - 3;
-                if (cpu->line == line) {
-                    printf(">");
-                } else {
-                    printf(" ");
-                }
-                int len = 0;
-                if (cpu->labels[line]) {
-                    len += printf("%s: ", cpu->labels[line]);
-                }
-                len += ins_print(&cpu->ops[line]);
-                int remain = 20 - len;
-                for (int i = 0; i < remain; i++) {
-                    printf(" ");
-                }
-                printf("|");
+            printf("| ");
+            if (cpu->line == line) {
+                printf(">");
+            } else {
+                printf(" ");
             }
+            int len = 0;
+            if (cpu->labels[line]) {
+                len += printf("%s: ", cpu->labels[line]);
+            }
+            len += ins_print(&cpu->ops[line]);
+            int remain = 20 - len;
+            for (int i = 0; i < remain; i++) {
+                printf(" ");
+            }
+            switch (line) {
+                case 3:
+                    printf("| ACC |");
+                    break;
+                case 4:
+                    printf("| %-4d|", cpu->acc);
+                    break;
+                case 6:
+                    printf("| BAK |");
+                    break;
+                case 7:
+                    printf("| %-4d|", cpu->bak);
+                    break;
+                default:
+                    printf("|     |");
+                    break;
+            }
+            printf("    ");
             break;
     }
 }
@@ -55,25 +69,25 @@ void print_io(node_t **nodes, int width, int height, int row) {
             switch (row) {
                 case 0:
                     if (y == 0) {
-                        printf(" IN%d|", x);
+                        printf("  IN%d |", x);
                     } else {
-                        printf("OUT%d|", x);
+                        printf(" OUT%d |", x);
                     }
                     break;
                 case 1:
-                    printf("-----");
+                    printf("-------");
                     break;
                 default:
                     if (line < io->pos && node->type == NODE_INPUT) {
-                        printf(" -- |");
+                        printf(" %4d <", io->data[line]);
                     } else if (io->data[line] > -1000) {
-                        printf("%-4d|", io->data[line]);
+                        printf(" %4d |", io->data[line]);
                     } else {
-                        printf("%-4d|", 0);
+                        printf(" %4d |", 0);
                     }
                     break;
                 case IO_HEIGHT + 2:
-                    printf("-----");
+                    printf("-------");
                     break;
             }
         }
@@ -83,8 +97,9 @@ void print_io(node_t **nodes, int width, int height, int row) {
 void sim_print(node_t **nodes, int width, int height) {
     int global_row = 0;
     for (int y = 1; y < height - 1; y++) {
-        for (int row = 0; row < CPU_HEIGHT + 4; row++) {
+        for (int row = 0; row < CPU_HEIGHT + 2; row++) {
             print_io(nodes, width, height, global_row++);
+            printf("    ");
             for (int x = 0; x < width; x++) {
                 node_t *node = nodes[x + y * width];
                 switch (node->type) {
