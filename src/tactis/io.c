@@ -65,7 +65,6 @@ io_status output_step(node_t *node) {
     io_t *output = (io_t *)node;
     int16_t value = 0;
     if (output->pos < IO_HEIGHT && node->read(node, DIR_UP, &value) != IO_WAIT) {
-        printf("output: %d\n", value);
         output->data[output->pos++] = value;
     }
     return node->status;
