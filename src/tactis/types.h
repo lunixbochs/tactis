@@ -118,8 +118,8 @@ typedef struct _cpu_state {
     node_t node;
     int16_t acc, bak;
     int16_t line;
-    cpu_ins ops[CPU_HEIGHT];
-    char *labels[CPU_HEIGHT];
+    cpu_ins ops[NODE_HEIGHT];
+    char *labels[NODE_HEIGHT];
 } cpu_state;
 
 #endif

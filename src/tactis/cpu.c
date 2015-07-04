@@ -21,7 +21,7 @@ node_t *cpu_new(char *code, parse_error *error, node_read_ptr read, node_write_p
     node->print = cpu_print;
     char *line;
     int i = 0;
-    while ((line = strsep(&pos, "\n")) != NULL && i < CPU_HEIGHT) {
+    while ((line = strsep(&pos, "\n")) != NULL && i < NODE_HEIGHT) {
         if (parse_line(line, &cpu->labels[i], &cpu->ops[i], error)) {
             error->line = i;
             free(lines);
@@ -30,8 +30,8 @@ node_t *cpu_new(char *code, parse_error *error, node_read_ptr read, node_write_p
         }
         i++;
     }
-    for (int i = 0; i < CPU_HEIGHT; i++) {
-        for (int j = 0; j < CPU_HEIGHT; j++) {
+    for (int i = 0; i < NODE_HEIGHT; i++) {
+        for (int j = 0; j < NODE_HEIGHT; j++) {
             if (cpu->labels[i] && cpu->ops[j].label &&
                     strcmp(cpu->labels[i], cpu->ops[j].label) == 0) {
                 cpu->ops[j].jmp_offset = i - j;
@@ -44,7 +44,7 @@ node_t *cpu_new(char *code, parse_error *error, node_read_ptr read, node_write_p
 
 void cpu_free(node_t *node) {
     cpu_state *cpu = (cpu_state *)node;
-    for (int i = 0; i < CPU_HEIGHT; i++) {
+    for (int i = 0; i < NODE_HEIGHT; i++) {
         free(cpu->labels[i]);
     }
 }
@@ -86,11 +86,11 @@ static io_status cpu_write(cpu_state *cpu, int16_t mask, int16_t value) {
 
 void cpu_advance(node_t *node) {
     cpu_state *cpu = (cpu_state *)node;
-    cpu->line = (cpu->line + 1) % CPU_HEIGHT;
+    cpu->line = (cpu->line + 1) % NODE_HEIGHT;
     // skip empty lines
-    for (int i = 0; i < CPU_HEIGHT; i++) {
+    for (int i = 0; i < NODE_HEIGHT; i++) {
         if (cpu->ops[cpu->line].op == OP_NONE) {
-            cpu->line = (cpu->line + 1) % CPU_HEIGHT;
+            cpu->line = (cpu->line + 1) % NODE_HEIGHT;
         } else {
             break;
         }
@@ -212,7 +212,7 @@ void cpu_print(node_t *node) {
     printf("| ACC: %d, BAK: %d\n", cpu->acc, cpu->bak);
     printf("------------------\n");
     int height;
-    for (int i = 0; i < CPU_HEIGHT; i++) {
+    for (int i = 0; i < NODE_HEIGHT; i++) {
         if (cpu->ops[i].op != OP_NONE) {
             height = i + 1;
         }
