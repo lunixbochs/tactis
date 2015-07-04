@@ -14,10 +14,7 @@ io_status input_step(node_t *node) {
         return node->status;
     }
     if (node->status == IO_NONE) {
-        node->status = IO_WAIT;
-        node->out_mask = DIR_DOWN;
-        node->output = input->data[input->pos];
-        node->write(node, DIR_DOWN, input->data[input->pos]);
+        node_write(node, DIR_DOWN, input->data[input->pos]);
     }
     return node->status;
 }
@@ -64,7 +61,7 @@ node_t *input_new(int16_t *inputs, node_read_ptr read, node_write_ptr write) {
 io_status output_step(node_t *node) {
     io_t *output = (io_t *)node;
     int16_t value = 0;
-    if (output->pos < IO_HEIGHT && node->read(node, DIR_UP, &value) != IO_WAIT) {
+    if (output->pos < IO_HEIGHT && node_read(node, DIR_UP, &value) == IO_NONE) {
         output->data[output->pos++] = value;
     }
     return node->status;

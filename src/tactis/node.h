@@ -14,6 +14,8 @@ typedef io_status (*node_free_ptr)(node_t *node);
 node_t *node_new();
 io_status node_latch(node_t *node);
 io_status node_step(node_t *node);
+io_status node_write(node_t *node, io_dir dir, int16_t value);
+io_status node_read(node_t *node, io_dir dir, int16_t *value);
 void node_free(node_t *node);
 void node_move(node_t *node, int16_t x, int16_t y);
 void node_print(node_t *node);

@@ -33,7 +33,8 @@ typedef enum {
     // returned during write delay
     IO_LOAD,
     // read or write is blocking
-    IO_WAIT,
+    IO_READ,
+    IO_WRITE,
     // read/write has finished
     IO_DONE,
 } io_status;

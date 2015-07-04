@@ -52,7 +52,7 @@ io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
     if (x != -1 && y != -1 && x < 2 && y < 3) {
         node_t **nodes = node->user;
         node_t *node = nodes[x + y * 2];
-        if (node->status == IO_WAIT) {
+        if (node->status == IO_WRITE) {
             if (node->out_mask & mask) {
                 *data = node->output;
                 node->status = IO_DONE;
@@ -60,7 +60,7 @@ io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
             }
         }
     }
-    return IO_WAIT;
+    return IO_READ;
 }
 
 static io_status sim_read_any(node_t *node, io_dir dir, int16_t *data) {
@@ -73,7 +73,7 @@ static io_status sim_read_any(node_t *node, io_dir dir, int16_t *data) {
 
 io_status sim_write(node_t *node, io_dir dir, int16_t data) {
     // printf("write from %d, %d\n", node->x, node->y);
-    return IO_WAIT;
+    return IO_WRITE;
 }
 
 int main(int argc, char **argv) {

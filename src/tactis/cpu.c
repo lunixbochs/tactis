@@ -68,10 +68,10 @@ static io_status cpu_read(cpu_state *cpu, int16_t imm, int16_t *value) {
             case REG_LEFT:
             case REG_RIGHT:
             case REG_DOWN:
-                return cpu->node.read(&cpu->node, imm, value);
+                return node_read(&cpu->node, imm, value);
             default:
                 fprintf(stderr, "error: invalid register\n");
-                return IO_WAIT;
+                return IO_READ;
         }
     }
     return IO_NONE;
@@ -110,8 +110,8 @@ io_status cpu_step(node_t *node) {
             break;
         case OP_MOV:
             // source
-            if (cpu_read(cpu, ins->a, &value) == IO_WAIT) {
-                return IO_WAIT;
+            if (cpu_read(cpu, ins->a, &value) == IO_READ) {
+                return IO_READ;
             }
             // dst
             reg = ins->b;
@@ -142,14 +142,14 @@ io_status cpu_step(node_t *node) {
             cpu->bak = cpu->acc;
             break;
         case OP_ADD:
-            if (cpu_read(cpu, ins->a, &value) == IO_WAIT) {
-                return IO_WAIT;
+            if (cpu_read(cpu, ins->a, &value) == IO_READ) {
+                return IO_READ;
             }
             cpu->acc += value;
             break;
         case OP_SUB:
-            if (cpu_read(cpu, ins->a, &value) == IO_WAIT) {
-                return IO_WAIT;
+            if (cpu_read(cpu, ins->a, &value) == IO_READ) {
+                return IO_READ;
             }
             cpu->acc -= value;
             break;
@@ -184,8 +184,8 @@ io_status cpu_step(node_t *node) {
             }
             break;
         case OP_JRO:
-            if (cpu_read(cpu, ins->a, &value) == IO_WAIT) {
-                return IO_WAIT;
+            if (cpu_read(cpu, ins->a, &value) == IO_READ) {
+                return IO_READ;
             }
             cpu->line += value;
             return IO_NONE;
@@ -198,7 +198,7 @@ io_status cpu_step(node_t *node) {
 io_status cpu_latch(node_t *node) {
     cpu_state *cpu = (cpu_state *)node;
     if (node->status == IO_LOAD) {
-        node->status = node->write(node, node->out_mask, node->output);
+        return node_write(node, node->out_mask, node->output);
     } else if (node->status == IO_DONE) {
         node->status = IO_NONE;
         cpu_advance(node);
