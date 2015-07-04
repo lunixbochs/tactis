@@ -49,31 +49,35 @@ void error_print_i(node_t *node, int row) {
     printf("printing error: %d\n", row);
 }
 
+#define WRITING(dir) (node->status == IO_WRITE && (node->out_mask & DIR_##dir))
 void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) {
+    node_t *node = nodes[x + y * width];
     // print the separator between the IO table and grid
     if (x == 0) {
-        switch (row) {
-            case 5:
-                printf(">>>>");
-                break;
-            case 6:
-                printf("-999");
-                break;
-            case 9:
+        if (WRITING(LEFT)) {
+            if (row == 9) {
                 printf("<<<<");
-                break;
-            case 10:
-                printf("-999");
-                break;
-            default:
+            } else if (row == 10) {
+                printf("%-4d", node->output);
+            } else {
                 printf("    ");
-                break;
+            }
+        } else {
+            printf("    ");
         }
     }
-    node_t *node = nodes[x + y * width];
     switch (row) {
         case 0:
-            printf("      vvvv -999 ^^^^ -999         ");
+            printf("      ");
+            // TODO: incoming IO
+            printf("     "); // "vvvv "
+            printf("     "); // "-999 "
+            if (WRITING(UP)) {
+                printf("^^^^ %-4d", node->output);
+            } else {
+                printf("         ");
+            }
+            printf("         ");
             return;
         case 1:
             printf("|----------------------|-----|    ");
@@ -82,7 +86,17 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
             printf("|----------------------|-----|    ");
             return;
         case NODE_HEIGHT + 3:
-            printf("      vvvv -999 ^^^^ -999         ");
+            printf("      ");
+            if (WRITING(DOWN)) {
+                printf("vvvv %-4d", node->output);
+            } else {
+                printf("         ");
+            }
+            // TODO: incoming IO
+            printf("     "); // "^^^^ "
+            printf("     "); // "-999 "
+            printf("     ");
+            printf("    ");
             return;
     }
     int line = row - 2;
@@ -99,17 +113,28 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
     // this draws IO to the right of a node
     switch (row) {
         case 5:
-            printf(">>>>");
+            if (WRITING(RIGHT)) {
+                printf(">>>>");
+            } else {
+                printf("    ");
+            }
             break;
         case 6:
-            printf("-999");
+            if (WRITING(RIGHT)) {
+                printf("%-4d", node->output);
+            } else {
+                printf("    ");
+            }
             break;
+        // TODO: input display
+        /*
         case 9:
             printf("<<<<");
             break;
         case 10:
             printf("-999");
             break;
+        */
         default:
             printf("    ");
             break;
