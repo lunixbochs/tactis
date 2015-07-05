@@ -79,7 +79,7 @@ static io_status cpu_read(cpu_state *cpu, int16_t imm, int16_t *value) {
 
 static io_status cpu_write(cpu_state *cpu, int16_t mask, int16_t value) {
     cpu->node.status = IO_LOAD;
-    cpu->node.out_mask = mask;
+    cpu->node.io_mask = mask;
     cpu->node.output = value;
     return IO_LOAD;
 }
@@ -198,7 +198,7 @@ io_status cpu_step(node_t *node) {
 io_status cpu_latch(node_t *node) {
     cpu_state *cpu = (cpu_state *)node;
     if (node->status == IO_LOAD) {
-        return node_write(node, node->out_mask, node->output);
+        return node_write(node, node->io_mask, node->output);
     } else if (node->status == IO_DONE) {
         node->status = IO_NONE;
         cpu_advance(node);

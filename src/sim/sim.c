@@ -53,7 +53,7 @@ io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
         node_t **nodes = node->user;
         node_t *node = nodes[x + y * 2];
         if (node->status == IO_WRITE) {
-            if (node->out_mask & mask) {
+            if (node->io_mask & mask) {
                 *data = node->output;
                 node->status = IO_DONE;
                 return IO_NONE;

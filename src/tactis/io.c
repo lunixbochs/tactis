@@ -14,13 +14,17 @@ io_status input_step(node_t *node) {
         return node->status;
     }
     if (node->status == IO_NONE) {
-        node_write(node, DIR_DOWN, input->data[input->pos]);
+        node->status = IO_LOAD;
+        node->io_mask = DIR_DOWN;
+        node->output = input->data[input->pos];
     }
     return node->status;
 }
 
 io_status input_latch(node_t *node) {
-    io_t *input = (io_t *)node;
+    if (node->status == IO_LOAD) {
+        return node_write(node, node->io_mask, node->output);
+    }
     return node->status;
 }
 
@@ -88,5 +92,7 @@ node_t *output_new(node_read_ptr read, node_write_ptr write) {
     node->latch = output_latch;
     node->free = output_free;
     node->print = output_print;
+    node->status = IO_READ;
+    node->io_mask = DIR_UP;
     return node;
 }

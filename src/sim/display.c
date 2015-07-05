@@ -49,12 +49,23 @@ void error_print_i(node_t *node, int row) {
     printf("printing error: %d\n", row);
 }
 
-#define WRITING(dir) (node->status == IO_WRITE && (node->out_mask & DIR_##dir))
+node_t *node_get(node_t **nodes, int width, int height, int x, int y) {
+    if (x < 0 || x >= width || y < 0 || y >= height) return NULL;
+    return nodes[x + y * width];
+}
+
+#define CHECK(node, dir, _status) (node && node->status == _status && (node->io_mask & DIR_##dir))
+#define WRITING(node, dir) CHECK(node, dir, IO_WRITE)
+#define READING(node, dir) CHECK(node, dir, IO_READ)
 void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) {
-    node_t *node = nodes[x + y * width];
+    node_t *node = node_get(nodes, width, height, x, y);
+    node_t *up = node_get(nodes, width, height, x, y - 1);
+    node_t *left = node_get(nodes, width, height, x - 1, y);
+    node_t *right = node_get(nodes, width, height, x + 1, y);
+    node_t *down = node_get(nodes, width, height, x, y + 1);
     // print the separator between the IO table and grid
     if (x == 0) {
-        if (WRITING(LEFT)) {
+        if (WRITING(node, LEFT)) {
             if (row == 9) {
                 printf("<<<<");
             } else if (row == 10) {
@@ -70,9 +81,17 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
         case 0:
             printf("      ");
             // TODO: incoming IO
-            printf("     "); // "vvvv "
-            printf("     "); // "-999 "
-            if (WRITING(UP)) {
+            if (WRITING(up, DOWN)) {
+                printf("vvvv ");
+                printf("%-4d ", up->output);
+            } else if (READING(node, UP)) {
+                printf("vvvv ");
+                printf("?    ");
+            } else {
+                printf("     ");
+                printf("     ");
+            }
+            if (WRITING(node, UP)) {
                 printf("^^^^ %-4d", node->output);
             } else {
                 printf("         ");
@@ -87,7 +106,7 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
             return;
         case NODE_HEIGHT + 3:
             printf("      ");
-            if (WRITING(DOWN)) {
+            if (WRITING(node, DOWN)) {
                 printf("vvvv %-4d", node->output);
             } else {
                 printf("         ");
@@ -113,14 +132,14 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
     // this draws IO to the right of a node
     switch (row) {
         case 5:
-            if (WRITING(RIGHT)) {
+            if (WRITING(node, RIGHT)) {
                 printf(">>>>");
             } else {
                 printf("    ");
             }
             break;
         case 6:
-            if (WRITING(RIGHT)) {
+            if (WRITING(node, RIGHT)) {
                 printf("%-4d", node->output);
             } else {
                 printf("    ");

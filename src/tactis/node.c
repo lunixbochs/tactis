@@ -26,12 +26,13 @@ io_status node_latch(node_t *node) {
 
 io_status node_write(node_t *node, io_dir dir, int16_t value) {
     node->status = IO_WRITE;
-    node->out_mask = dir;
+    node->io_mask = dir;
     node->output = value;
     return node->write(node, dir, value);
 }
 
 io_status node_read(node_t *node, io_dir dir, int16_t *value) {
+    node->io_mask = dir;
     return node->read(node, dir, value);
 }
 
@@ -45,7 +46,7 @@ void node_print(node_t *node) {
     if (! node->print)
         return;
     if (node->status == IO_WRITE) {
-        int16_t mask = node->out_mask;
+        int16_t mask = node->io_mask;
         printf("moving: (%d, %d) %d %d ", node->x, node->y, node->output, mask);
         if (mask & DIR_UP) printf("UP ");
         if (mask & DIR_LEFT) printf("LEFT ");

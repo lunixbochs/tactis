@@ -53,7 +53,7 @@ typedef struct _node {
     int16_t x, y;
     int16_t last;
     // this is a bitfield of the directions allowed for output
-    io_dir out_mask;
+    io_dir io_mask;
     // this is the value held for output
     int16_t output;
     // IO_NONE with no data, IO_LOAD waiting for latch, and IO_WAIT while waiting for receiver
