@@ -99,7 +99,7 @@ void cpu_advance(node_t *node) {
 
 io_status cpu_step(node_t *node) {
     cpu_state *cpu = (cpu_state *)node;
-    if (cpu->node.status != IO_NONE) {
+    if (node->status == IO_WRITE || node->status == IO_LOAD) {
         return cpu->node.status;
     }
     int16_t value, reg;

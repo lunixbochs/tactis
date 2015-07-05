@@ -25,6 +25,8 @@ io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
              (sim_read_any(node, DIR_DOWN, data) == IO_NONE)) {
             return IO_NONE;
         }
+        node->status = IO_READ;
+        return IO_READ;
     }
     int x = -1, y = -1;
     int mask = DIR_ANY;
@@ -60,7 +62,8 @@ io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
             }
         }
     }
-    return IO_READ;
+    node->status = IO_READ;
+    return node->status;
 }
 
 static io_status sim_read_any(node_t *node, io_dir dir, int16_t *data) {
