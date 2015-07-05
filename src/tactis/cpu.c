@@ -100,7 +100,7 @@ void cpu_advance(node_t *node) {
 io_status cpu_step(node_t *node) {
     cpu_state *cpu = (cpu_state *)node;
     if (node->status == IO_WRITE || node->status == IO_LOAD) {
-        return cpu->node.status;
+        return node->status;
     }
     int16_t value, reg;
     cpu_ins *ins;
@@ -122,7 +122,7 @@ io_status cpu_step(node_t *node) {
                     cpu->acc = value;
                     break;
                 case REG_LAST:
-                    reg = cpu->node.last || REG_NIL;
+                    reg = node->last || REG_NIL;
                 case REG_ANY:
                 case REG_UP:
                 case REG_LEFT:
