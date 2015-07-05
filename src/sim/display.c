@@ -60,7 +60,7 @@ void print_io_status(int writing, int reading, const char *text, int16_t output)
     } else if (reading) {
         printf("%s ?    ", text);
     } else {
-        printf("           ");
+        printf("          ");
     }
 }
 
