@@ -87,12 +87,8 @@ int main(int argc, char **argv) {
     }
     node_t *nodes[3][2] = {0};
     int16_t inputs[IO_HEIGHT] = {1, 2, 3, 4, 5, -1000};
-    node_t *in_bs = input_new(inputs, sim_read, sim_write);
-    nodes[0][0] = in_bs;
-    for (int x = 0; x < 2; x++) {
-        node_t *out_print = output_new(sim_read, sim_write);
-        nodes[2][x] = out_print;
-    }
+    nodes[0][0] = input_new(inputs, sim_read, sim_write);
+    nodes[2][1] = output_new(sim_read, sim_write);
     nodes[1][0] = cpu;
     nodes[1][1] = cpu_new(sink_code, &error, sim_read, sim_write);
     if (! nodes[1][1]) {
