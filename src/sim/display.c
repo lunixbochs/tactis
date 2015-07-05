@@ -54,7 +54,17 @@ node_t *node_get(node_t **nodes, int width, int height, int x, int y) {
     return nodes[x + y * width];
 }
 
-#define CHECK(node, dir, _status) (node && node->status == _status && (node->io_mask & DIR_##dir))
+void print_io_status(int writing, int reading, const char *text, int16_t output) {
+    if (writing) {
+        printf("%s %-4d ", text, output);
+    } else if (reading) {
+        printf("%s ?    ", text);
+    } else {
+        printf("           ");
+    }
+}
+
+#define CHECK(node, dir, _status) (node && node->status == _status && (node->io_mask & DIR_##dir || node->io_mask & DIR_ANY))
 #define WRITING(node, dir) CHECK(node, dir, IO_WRITE)
 #define READING(node, dir) CHECK(node, dir, IO_READ)
 void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) {
@@ -80,22 +90,8 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
     switch (row) {
         case 0:
             printf("      ");
-            // TODO: incoming IO
-            if (WRITING(up, DOWN)) {
-                printf("vvvv ");
-                printf("%-4d ", up->output);
-            } else if (READING(node, UP)) {
-                printf("vvvv ");
-                printf("?    ");
-            } else {
-                printf("     ");
-                printf("     ");
-            }
-            if (WRITING(node, UP)) {
-                printf("^^^^ %-4d", node->output);
-            } else {
-                printf("         ");
-            }
+            print_io_status(WRITING(up, DOWN), READING(node, UP), "vvvv", up->output);
+            print_io_status(WRITING(node, UP), READING(up, DOWN), "^^^^", node->output);
             printf("         ");
             return;
         case 1:
@@ -106,16 +102,9 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
             return;
         case NODE_HEIGHT + 3:
             printf("      ");
-            if (WRITING(node, DOWN)) {
-                printf("vvvv %-4d", node->output);
-            } else {
-                printf("         ");
-            }
-            // TODO: incoming IO
-            printf("     "); // "^^^^ "
-            printf("     "); // "-999 "
-            printf("     ");
-            printf("    ");
+            print_io_status(WRITING(node, DOWN), READING(down, UP), "vvvv", node->output);
+            print_io_status(WRITING(down, UP), READING(node, DOWN), "^^^^", down->output);
+            printf("         ");
             return;
     }
     int line = row - 2;
@@ -132,7 +121,7 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
     // this draws IO to the right of a node
     switch (row) {
         case 5:
-            if (WRITING(node, RIGHT)) {
+            if (WRITING(node, RIGHT) || READING(right, LEFT)) {
                 printf(">>>>");
             } else {
                 printf("    ");
@@ -141,19 +130,28 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
         case 6:
             if (WRITING(node, RIGHT)) {
                 printf("%-4d", node->output);
+            } else if (READING(right, LEFT)) {
+                printf("?   ");
             } else {
                 printf("    ");
             }
             break;
-        // TODO: input display
-        /*
         case 9:
-            printf("<<<<");
+            if (READING(node, RIGHT) || WRITING(right, LEFT)) {
+                printf("<<<<");
+            } else {
+                printf("    ");
+            }
             break;
         case 10:
-            printf("-999");
+            if (WRITING(right, LEFT)) {
+                printf("%-4d", right->output);
+            } else if (READING(node, RIGHT)) {
+                printf("?   ");
+            } else {
+                printf("    ");
+            }
             break;
-        */
         default:
             printf("    ");
             break;
