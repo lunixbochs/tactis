@@ -13,13 +13,13 @@ void node_move(node_t *node, int16_t x, int16_t y) {
 }
 
 io_status node_step(node_t *node) {
-    if (! node->step)
+    if (! (node && node->step))
         return IO_NONE;
     return node->step(node);
 }
 
 io_status node_latch(node_t *node) {
-    if (! node->latch)
+    if (! (node && node->latch))
         return IO_NONE;
     return node->latch(node);
 }
@@ -37,13 +37,13 @@ io_status node_read(node_t *node, io_dir dir, int16_t *value) {
 }
 
 void node_free(node_t *node) {
-    if (! node_free)
+    if (! (node && node->free))
         return;
     return node->free(node);
 }
 
 void node_print(node_t *node) {
-    if (! node->print)
+    if (! (node && node->print))
         return;
     if (node->status == IO_WRITE) {
         int16_t mask = node->io_mask;

@@ -58,8 +58,8 @@ typedef struct _node {
     int16_t output;
     // IO_NONE with no data, IO_LOAD waiting for latch, and IO_WAIT while waiting for receiver
     io_status status;
-    // useful place to store cpu table for callbacks
-    void *user;
+    // store cpu grid for callbacks
+    void *grid;
     // function pointers
     io_status (*read)(struct _node *node, io_dir dir, int16_t *data);
     io_status (*write)(struct _node *node, io_dir dir, int16_t data);
@@ -68,6 +68,13 @@ typedef struct _node {
     void (*free)(struct _node *node);
     void (*print)(struct _node *node);
 } node_t;
+
+// node grid
+
+typedef struct {
+    int16_t width, height;
+    node_t **nodes, **input, **output;
+} grid_t;
 
 // io types
 typedef struct {

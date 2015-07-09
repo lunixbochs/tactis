@@ -49,11 +49,6 @@ void error_print_i(node_t *node, int row) {
     printf("printing error: %d\n", row);
 }
 
-node_t *node_get(node_t **nodes, int width, int height, int x, int y) {
-    if (x < 0 || x >= width || y < 0 || y >= height) return NULL;
-    return nodes[x + y * width];
-}
-
 void print_io_status(int writing, int reading, const char *text, int16_t output) {
     if (writing) {
         printf("%s %-4d ", text, output);
@@ -67,12 +62,12 @@ void print_io_status(int writing, int reading, const char *text, int16_t output)
 #define CHECK(node, dir, _status) (node && node->status == _status && (node->io_mask & DIR_##dir || node->io_mask & DIR_ANY))
 #define WRITING(node, dir) CHECK(node, dir, IO_WRITE)
 #define READING(node, dir) CHECK(node, dir, IO_READ)
-void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) {
-    node_t *node = node_get(nodes, width, height, x, y);
-    node_t *up = node_get(nodes, width, height, x, y - 1);
-    node_t *left = node_get(nodes, width, height, x - 1, y);
-    node_t *right = node_get(nodes, width, height, x + 1, y);
-    node_t *down = node_get(nodes, width, height, x, y + 1);
+void node_print_i(grid_t *grid, int x, int y, int row) {
+    node_t *node = grid_get(grid, x, y);
+    node_t *up = grid_get(grid, x, y - 1);
+    node_t *left = grid_get(grid, x - 1, y);
+    node_t *right = grid_get(grid, x + 1, y);
+    node_t *down = grid_get(grid, x, y + 1);
     // print the separator between the IO table and grid
     if (x == 0) {
         if (WRITING(node, LEFT)) {
@@ -107,16 +102,20 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
             printf("         ");
             return;
     }
-    int line = row - 2;
-    switch (node->type) {
-        case NODE_CPU:
-            printf("| ");
-            cpu_print_i(node, line);
-            printf("|");
-            break;
-        default:
-            // can't draw non-cpu nodes yet
-            return;
+    if (node) {
+        int line = row - 2;
+        switch (node->type) {
+            case NODE_CPU:
+                printf("| ");
+                cpu_print_i(node, line);
+                printf("|");
+                break;
+            default:
+                // can't draw non-cpu nodes yet
+                return;
+        }
+    } else {
+        printf("|                            |");
     }
     // this draws IO to the right of a node
     switch (row) {
@@ -158,21 +157,30 @@ void node_print_i(node_t **nodes, int width, int height, int x, int y, int row) 
     }
 }
 
-void print_io(node_t **nodes, int width, int height, int row) {
-    for (int y = 0; y < height; y += height - 1) {
-        for (int x = 0; x < width; x++) {
-            node_t *node = nodes[x + y * width];
-            if (node->type != NODE_INPUT && node->type != NODE_OUTPUT) {
+void print_io(grid_t *grid, int row) {
+    for (int output = 0; output < 2; output++) {
+        for (int x = 0; x < grid->width; x++) {
+            node_t *node = NULL;
+            if (output) {
+                node = grid_get_output(grid, x);
+            } else {
+                node = grid_get_input(grid, x);
+            }
+            if (!node || (node->type != NODE_INPUT && node->type != NODE_OUTPUT)) {
                 continue;
             }
             io_t *io = (io_t *)node;
             int line = row - 2;
+            if (row > IO_HEIGHT + 2) {
+                printf("       ");
+                continue;
+            }
             switch (row) {
                 case 0:
-                    if (y == 0) {
-                        printf("  IN%d |", x);
-                    } else {
+                    if (output) {
                         printf(" OUT%d |", x);
+                    } else {
+                        printf("  IN%d |", x);
                     }
                     break;
                 case 1:
@@ -195,19 +203,21 @@ void print_io(node_t **nodes, int width, int height, int row) {
     }
 }
 
-void sim_print(node_t **nodes, int width, int height) {
+void sim_print(grid_t *grid) {
     int global_row = 0;
-    for (int y = 1; y < height - 1; y++) {
-        for (int row = 0; row < NODE_HEIGHT + 4; row++) {
-            print_io(nodes, width, height, global_row++);
-            for (int x = 0; x < width; x++) {
-                node_print_i(nodes, width, height, x, y, row);
+    for (int y = 0; y < grid->height; y++) {
+        // we need one extra row at the end to show the output line
+        int height = NODE_HEIGHT + 3 + (y == grid->height - 1);
+        for (int row = 0; row < height; row++) {
+            print_io(grid, global_row++);
+            for (int x = 0; x < grid->width; x++) {
+                node_print_i(grid, x, y, row);
             }
             printf("\n");
         }
     }
     while (global_row < 42) {
-        print_io(nodes, width, height, global_row++);
+        print_io(grid, global_row++);
         printf("\n");
     }
 }

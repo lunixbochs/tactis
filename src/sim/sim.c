@@ -50,19 +50,15 @@ io_status sim_read(node_t *node, io_dir dir, int16_t *data) {
         y = node->y + 1;
         mask |= DIR_UP;
     }
-    // TODO: don't hardcode bounds
-    if (x != -1 && y != -1 && x < 2 && y < 3) {
-        node_t **nodes = node->user;
-        node_t *node = nodes[x + y * 2];
-        if (node->status == IO_WRITE) {
-            if (node->io_mask & mask) {
-                *data = node->output;
-                node->status = IO_DONE;
-                return IO_NONE;
-            }
-        }
+    grid_t *grid = (grid_t *)node->grid;
+    node_t *target = grid_get(grid, x, y);
+    if (target && target->status == IO_WRITE && target->io_mask & mask) {
+        *data = target->output;
+        target->status = IO_DONE;
+        node->status = IO_NONE;
+    } else {
+        node->status = IO_READ;
     }
-    node->status = IO_READ;
     return node->status;
 }
 
@@ -81,55 +77,25 @@ io_status sim_write(node_t *node, io_dir dir, int16_t data) {
 
 int main(int argc, char **argv) {
     parse_error error;
-    node_t *cpu = cpu_new(code, &error, sim_read, sim_write);
-    if (! cpu) {
-        print_error(code, &error);
-    }
-    node_t *nodes[3][2] = {0};
+    grid_t *grid = grid_new(4, 3, NULL);
     int16_t inputs[IO_HEIGHT] = {1, 2, 3, 4, 5, -1000};
-    nodes[0][0] = input_new(inputs, sim_read, sim_write);
-    nodes[2][1] = output_new(sim_read, sim_write);
-    nodes[1][0] = cpu;
-    nodes[1][1] = cpu_new(sink_code, &error, sim_read, sim_write);
-    if (! nodes[1][1]) {
+    grid_set_input(grid, 0, input_new(inputs, sim_read, sim_write));
+    grid_set_output(grid, 1, output_new(sim_read, sim_write));
+    grid_set(grid, 0, 0, cpu_new(code, &error, sim_read, sim_write));
+    if (! grid_get(grid, 0, 0)) {
         print_error(code, &error);
     }
-    node_t *null_node = node_new();
-    for (int x = 0; x < 2; x++) {
-        for (int y = 0; y < 3; y++) {
-            if (nodes[y][x]) {
-                node_move(nodes[y][x], x, y);
-                nodes[y][x]->user = (void *)nodes;
-            } else {
-                nodes[y][x] = null_node;
-            }
-        }
+    grid_set(grid, 1, 0, cpu_new(sink_code, &error, sim_read, sim_write));
+    if (! grid_get(grid, 1, 0)) {
+        print_error(code, &error);
     }
-    /*
-    for (int x = 0; x < 2; x++) {
-        for (int y = 1; y < 3; y++) {
-            if (nodes[x][y])
-                continue;
-            nodes[x][y] = cpu_new(sink_code, &error, sim_read, sim_write);
-            if (! nodes[x][y]) {
-                print_error(code, &error);
-            }
-        }
-    }
-    */
+    grid_set(grid, 1, 1, cpu_copy(grid_get(grid, 1, 0)));
+    grid_set(grid, 1, 2, cpu_copy(grid_get(grid, 1, 0)));
     while (1) {
-        sim_print((node_t **)nodes, 2, 3);
+        sim_print(grid);
         fgetc(stdin);
-        for (int x = 0; x < 2; x++) {
-            for (int y = 0; y < 3; y++) {
-                node_step(nodes[y][x]);
-            }
-        }
-        for (int x = 0; x < 2; x++) {
-            for (int y = 0; y < 3; y++) {
-                node_latch(nodes[y][x]);
-            }
-        }
+        grid_step(grid);
+        grid_latch(grid);
     }
     return 0;
 }

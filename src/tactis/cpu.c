@@ -42,6 +42,12 @@ node_t *cpu_new(char *code, parse_error *error, node_read_ptr read, node_write_p
     return node;
 }
 
+node_t *cpu_copy(node_t *node) {
+    cpu_state *cpu = malloc(sizeof(cpu_state));
+    memcpy(cpu, node, sizeof(cpu_state));
+    return (node_t *)cpu;
+}
+
 void cpu_free(node_t *node) {
     cpu_state *cpu = (cpu_state *)node;
     for (int i = 0; i < NODE_HEIGHT; i++) {
