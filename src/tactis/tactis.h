@@ -2,7 +2,6 @@
 #define TACTIS_H
 
 #include "./cpu.h"
-#include "./grid.h"
 #include "./io.h"
 #include "./node.h"
 #include "./parse.h"

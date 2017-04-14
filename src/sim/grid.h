@@ -3,7 +3,14 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "types.h"
+#include "../tactis/types.h"
+
+// node grid
+
+typedef struct {
+    int16_t width, height;
+    node_t **nodes, **input, **output;
+} grid_t;
 
 grid_t *grid_new(int16_t width, int16_t height, node_t **nodes);
 static inline int grid_pos_invalid(grid_t *grid, int x, int y);

@@ -69,13 +69,6 @@ typedef struct _node {
     void (*print)(struct _node *node);
 } node_t;
 
-// node grid
-
-typedef struct {
-    int16_t width, height;
-    node_t **nodes, **input, **output;
-} grid_t;
-
 // io types
 typedef struct {
     node_t node;

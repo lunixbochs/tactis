@@ -4,6 +4,7 @@
 #include "tactis.h"
 #include "./display.h"
 #include "./error.h"
+#include "./grid.h"
 
 char *code = (
     "MOV UP, ACC\n"
