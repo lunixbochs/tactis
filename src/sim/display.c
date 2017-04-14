@@ -85,8 +85,8 @@ void node_print_i(grid_t *grid, int x, int y, int row) {
     switch (row) {
         case 0:
             printf("      ");
-            print_io_status(WRITING(up, DOWN), READING(node, UP), "vvvv", up->output);
-            print_io_status(WRITING(node, UP), READING(up, DOWN), "^^^^", node->output);
+            print_io_status(WRITING(up, DOWN), READING(node, UP), "vvvv", up && up->output);
+            print_io_status(WRITING(node, UP), READING(up, DOWN), "^^^^", node && node->output);
             printf("         ");
             return;
         case 1:
@@ -97,8 +97,8 @@ void node_print_i(grid_t *grid, int x, int y, int row) {
             return;
         case NODE_HEIGHT + 3:
             printf("      ");
-            print_io_status(WRITING(node, DOWN), READING(down, UP), "vvvv", node->output);
-            print_io_status(WRITING(down, UP), READING(node, DOWN), "^^^^", down->output);
+            print_io_status(WRITING(node, DOWN), READING(down, UP), "vvvv", node && node->output);
+            print_io_status(WRITING(down, UP), READING(node, DOWN), "^^^^", down && down->output);
             printf("         ");
             return;
     }
