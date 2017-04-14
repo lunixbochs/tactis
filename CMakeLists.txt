@@ -20,3 +20,10 @@ target_link_libraries(repl tactis)
 file(GLOB_RECURSE SIM_SOURCE src/sim/*.c)
 add_executable(sim ${SIM_SOURCE})
 target_link_libraries(sim tactis)
+
+add_custom_target(mbed
+    COMMAND make
+    BYPRODUCTS LPC1114/tactis.elf
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    COMMAND ${CMAKE_COMMAND} -E copy LPC1114/tactis.elf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    WORKING_DIRECTORY src/mbed)
