@@ -36,7 +36,7 @@ token_pair reg_map[] = {
 };
 
 const char *token_name(int token, token_pair *tpos) {
-    token_pair *tok, *pos = op_map;
+    token_pair *tok = op_map;
     while ((tok = tpos++)->name) {
         if (tok->token == token)
             return tok->name;

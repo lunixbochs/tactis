@@ -202,7 +202,6 @@ io_status cpu_step(node_t *node) {
 }
 
 io_status cpu_latch(node_t *node) {
-    cpu_state *cpu = (cpu_state *)node;
     if (node->status == IO_LOAD) {
         return node_write(node, node->io_mask, node->output);
     } else if (node->status == IO_DONE) {
@@ -217,7 +216,7 @@ void cpu_print(node_t *node) {
     printf("------------------\n");
     printf("| ACC: %d, BAK: %d\n", cpu->acc, cpu->bak);
     printf("------------------\n");
-    int height;
+    int height = 0;
     for (int i = 0; i < NODE_HEIGHT; i++) {
         if (cpu->ops[i].op != OP_NONE) {
             height = i + 1;

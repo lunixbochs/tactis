@@ -17,11 +17,12 @@ char *strndup(const char *s, size_t len) {
     return s2;
 }
 
-void strupr(char *s) {
+char *strupr(char *s) {
     while (*s) {
         int c = toupper(*s);
         *s++ = c;
     }
+    return s;
 }
 
 int16_t clamp_999(int16_t value) {
